@@ -26,5 +26,5 @@ labels: 'bug'
 
 ## Environment
 
-- App version: e.g Proxyman 3.9.0
-- macOS version: e.g macOS Monterey
+- App version: e.g Fortunate HTML 1.0.0
+- Android version: e.g Android 14

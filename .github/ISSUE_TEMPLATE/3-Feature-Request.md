@@ -10,4 +10,4 @@ labels: 'enhancement'
 
 ## Why this feature/change is important?
 
-<!-- Explain why Proxyman needs this feature/change? -->
+<!-- Explain why Fortunate HTML needs this feature/change? -->
