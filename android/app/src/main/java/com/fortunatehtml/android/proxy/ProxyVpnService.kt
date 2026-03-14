@@ -2,7 +2,9 @@ package com.fortunatehtml.android.proxy
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.net.ProxyInfo
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.core.app.NotificationCompat
 import com.fortunatehtml.android.FortunateHtmlApp
@@ -10,10 +12,6 @@ import com.fortunatehtml.android.R
 import com.fortunatehtml.android.data.PreferencesManager
 import com.fortunatehtml.android.ui.MainActivity
 import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.DatagramChannel
 
 class ProxyVpnService : VpnService() {
 
@@ -41,7 +39,7 @@ class ProxyVpnService : VpnService() {
         certManager.initialize()
 
         val app = application as FortunateHtmlApp
-        proxyServer = ProxyServer(port, certManager, app.trafficRepository, prefs.mitmEnabled)
+        proxyServer = ProxyServer(port, certManager, app.trafficRepository, prefs.mitmEnabled, this)
         proxyServer?.start()
 
         // Set up VPN interface
@@ -51,6 +49,13 @@ class ProxyVpnService : VpnService() {
             .addRoute("0.0.0.0", 0)
             .addDnsServer("8.8.8.8")
             .setMtu(1500)
+
+        // On Android 10+ configure the system HTTP proxy so that apps using the
+        // system proxy selector automatically route their traffic through the local
+        // proxy server without requiring raw IP-packet forwarding.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setHttpProxy(ProxyInfo.buildDirectProxy("localhost", port))
+        }
 
         vpnInterface = builder.establish()
 
@@ -73,35 +78,23 @@ class ProxyVpnService : VpnService() {
     private fun processPackets() {
         val vpnFd = vpnInterface?.fileDescriptor ?: return
         val input = FileInputStream(vpnFd)
-        val output = FileOutputStream(vpnFd)
-        val buffer = ByteBuffer.allocate(32767)
+        val buffer = ByteArray(32767)
 
         while (running) {
             try {
-                buffer.clear()
-                val length = input.read(buffer.array())
-                if (length > 0) {
-                    buffer.limit(length)
-                    // Forward packet through VPN tunnel
-                    handlePacket(buffer, output)
+                // Drain packets from the TUN interface to keep the VPN connection alive.
+                // HTTP/HTTPS traffic reaches the proxy server directly via the system
+                // proxy setting and never appears here.
+                val length = input.read(buffer)
+                if (length <= 0) {
+                    Thread.sleep(10)
                 }
-                Thread.sleep(1)
             } catch (_: Exception) {
                 if (!running) break
             }
         }
 
         input.close()
-        output.close()
-    }
-
-    private fun handlePacket(buffer: ByteBuffer, output: FileOutputStream) {
-        // Basic IP packet forwarding - packets will be routed through the proxy
-        // The VPN captures all traffic and the proxy server handles HTTP/HTTPS
-        try {
-            output.write(buffer.array(), 0, buffer.limit())
-        } catch (_: Exception) {
-        }
     }
 
     private fun createNotification(): android.app.Notification {

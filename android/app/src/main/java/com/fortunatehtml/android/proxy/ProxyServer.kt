@@ -1,11 +1,13 @@
 package com.fortunatehtml.android.proxy
 
+import android.net.VpnService
 import com.fortunatehtml.android.data.TrafficRepository
 import com.fortunatehtml.android.model.TrafficEntry
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.OutputStream
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -18,7 +20,8 @@ class ProxyServer(
     private val port: Int,
     private val certificateManager: CertificateManager,
     private val trafficRepository: TrafficRepository,
-    private val mitmEnabled: Boolean = true
+    private val mitmEnabled: Boolean = true,
+    private val vpnService: VpnService? = null
 ) {
 
     private var serverSocket: ServerSocket? = null
@@ -126,8 +129,6 @@ class ProxyServer(
     private fun handleMitmConnection(clientSocket: Socket, host: String, remotePort: Int) {
         try {
             val sslContext = certificateManager.getSSLContextForHost(host)
-            val sslServerSocket = sslContext.serverSocketFactory.createServerSocket(0)
-            val localPort = sslServerSocket.localPort
 
             // Wrap client connection with SSL using our generated certificate
             val sslSocket = sslContext.socketFactory.createSocket(
@@ -188,8 +189,6 @@ class ProxyServer(
                 sslSocket.getOutputStream(), entry, method, path,
                 host, remotePort, requestHeaders, requestBody
             )
-
-            sslServerSocket.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -208,13 +207,16 @@ class ProxyServer(
         try {
             // Create SSL connection to actual server
             val trustAllContext = SSLContextHelper.createTrustAllSSLContext()
-            val socket = trustAllContext.socketFactory.createSocket(host, port) as SSLSocket
-            socket.startHandshake()
+            val socket = Socket()
+            vpnService?.protect(socket)
+            socket.connect(InetSocketAddress(host, port))
+            val sslSocket = trustAllContext.socketFactory.createSocket(socket, host, port, true) as SSLSocket
+            sslSocket.startHandshake()
 
             val startTime = System.currentTimeMillis()
 
             // Send request to server
-            val serverOutput = socket.getOutputStream()
+            val serverOutput = sslSocket.getOutputStream()
             val requestBuilder = StringBuilder()
             requestBuilder.append("$method $path HTTP/1.1\r\n")
             requestBuilder.append("Host: $host\r\n")
@@ -231,7 +233,7 @@ class ProxyServer(
             serverOutput.flush()
 
             // Read response from server
-            val serverReader = BufferedReader(InputStreamReader(socket.getInputStream()))
+            val serverReader = BufferedReader(InputStreamReader(sslSocket.getInputStream()))
             val statusLine = serverReader.readLine() ?: return
 
             val statusParts = statusLine.split(" ", limit = 3)
@@ -291,6 +293,7 @@ class ProxyServer(
             clientOutput.write(responseBuilder.toString().toByteArray())
             clientOutput.flush()
 
+            sslSocket.close()
             socket.close()
         } catch (e: Exception) {
             trafficRepository.updateEntry(entry.id) { existing ->
@@ -302,7 +305,9 @@ class ProxyServer(
 
     private fun tunnelConnection(clientSocket: Socket, host: String, port: Int) {
         try {
-            val remoteSocket = Socket(host, port)
+            val remoteSocket = Socket()
+            vpnService?.protect(remoteSocket)
+            remoteSocket.connect(InetSocketAddress(host, port))
             val t1 = Thread { relay(clientSocket.getInputStream(), remoteSocket.getOutputStream()) }
             val t2 = Thread { relay(remoteSocket.getInputStream(), clientSocket.getOutputStream()) }
             t1.start()
@@ -333,13 +338,14 @@ class ProxyServer(
         headers: Map<String, String>,
         requestBody: String?
     ) {
+        var entry: TrafficEntry? = null
         try {
             val uri = URI(target)
             val host = uri.host ?: return
             val port = if (uri.port > 0) uri.port else 80
             val path = if (uri.rawQuery != null) "${uri.rawPath}?${uri.rawQuery}" else uri.rawPath ?: "/"
 
-            val entry = TrafficEntry(
+            entry = TrafficEntry(
                 method = method,
                 url = target,
                 host = host,
@@ -352,7 +358,9 @@ class ProxyServer(
             trafficRepository.addEntry(entry)
 
             val startTime = System.currentTimeMillis()
-            val remoteSocket = Socket(host, port)
+            val remoteSocket = Socket()
+            vpnService?.protect(remoteSocket)
+            remoteSocket.connect(InetSocketAddress(host, port))
             val serverOutput = remoteSocket.getOutputStream()
 
             // Forward request
@@ -433,8 +441,10 @@ class ProxyServer(
 
             remoteSocket.close()
         } catch (e: Exception) {
-            trafficRepository.updateEntry(entry.id) { existing ->
-                existing.copy(state = TrafficEntry.State.FAILED)
+            entry?.let { e ->
+                trafficRepository.updateEntry(e.id) { existing ->
+                    existing.copy(state = TrafficEntry.State.FAILED)
+                }
             }
         }
     }
