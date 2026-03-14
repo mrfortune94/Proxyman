@@ -52,7 +52,9 @@ class OkHttpInspector(
             state           = "PENDING"
         )
 
-        // Insert the pending entry for early visibility in the UI
+        // Insert the pending entry for early visibility in the UI.
+        // OnConflictStrategy.REPLACE on the DAO means subsequent inserts with the
+        // same primary key (entry.id) act as upserts – no race condition risk.
         scope.launch { trafficDao.insert(entry) }
 
         // Execute the request
@@ -62,10 +64,8 @@ class OkHttpInspector(
             response = chain.proceed(request)
             duration = System.currentTimeMillis() - startTime
         } catch (e: Exception) {
-            // Use update() so the COMPLETE insert above cannot overwrite a FAILED state
-            scope.launch {
-                trafficDao.update(entry.copy(state = "FAILED"))
-            }
+            // Replace the PENDING row with a FAILED one using the same id.
+            scope.launch { trafficDao.insert(entry.copy(state = "FAILED")) }
             throw e
         }
 
@@ -76,9 +76,9 @@ class OkHttpInspector(
 
         val responseSize = responseBodyStr?.length?.toLong()
 
-        // Update (not insert) so the PENDING row is enriched rather than replaced
+        // Replace the PENDING row with the completed entry (same id → upsert).
         scope.launch {
-            trafficDao.update(
+            trafficDao.insert(
                 entry.copy(
                     statusCode      = response.code,
                     responseHeaders = response.headers.toMap(),

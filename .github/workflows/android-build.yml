@@ -41,8 +41,20 @@ jobs:
           name: pocket-api-inspector-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
+      # Detect whether signing secrets have been configured in this repo
+      - name: Check for signing secrets
+        id: check_secrets
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+
       - name: Build release APK (if signing secrets present)
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: steps.check_secrets.outputs.has_secrets == 'true'
         working-directory: android
         run: ./gradlew assembleRelease
         env:
@@ -52,7 +64,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
 
       - name: Upload release APK
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: steps.check_secrets.outputs.has_secrets == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: pocket-api-inspector-release

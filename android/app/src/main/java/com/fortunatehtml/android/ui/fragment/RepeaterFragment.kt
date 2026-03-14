@@ -62,7 +62,7 @@ class RepeaterFragment : Fragment() {
     private fun sendRequest() {
         val url = etUrl.text.toString().trim()
         if (url.isEmpty()) {
-            tvResponse.text = "URL is required."
+            tvResponse.text = getString(R.string.repeater_url_required)
             return
         }
 
@@ -71,7 +71,7 @@ class RepeaterFragment : Fragment() {
         val body    = etBody.text.toString()
 
         btnSend.isEnabled = false
-        tvResponse.text   = "Sending…"
+        tvResponse.text   = getString(R.string.repeater_sending)
 
         val app = requireActivity().application as FortunateHtmlApp
         val client = OkHttpClient.Builder()

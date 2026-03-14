@@ -55,23 +55,24 @@ class SettingsFragment : Fragment() {
             prefs.prettyPrintJson    = cbPrettyJson.isChecked
             prefs.disableScreenshots = cbScreenshots.isChecked
             prefs.biometricLock      = cbBiometric.isChecked
-            Toast.makeText(requireContext(), "Settings saved", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.toast_settings_saved, Toast.LENGTH_SHORT).show()
         }
 
         btnClearData.setOnClickListener {
             AlertDialog.Builder(requireContext())
-                .setTitle("Clear All Data")
-                .setMessage("This will delete all traffic history, projects, logs, and scope rules. This cannot be undone.")
-                .setPositiveButton("Clear") { _, _ ->
+                .setTitle(R.string.dialog_clear_data_title)
+                .setMessage(R.string.dialog_clear_data_message)
+                .setPositiveButton(R.string.dialog_clear_data_positive) { _, _ ->
                     val app = requireActivity().application as FortunateHtmlApp
                     app.trafficRepository.clear()
                     CoroutineScope(Dispatchers.IO).launch {
                         app.database.trafficDao().deleteAll()
                         app.database.logDao().deleteAll()
                     }
-                    Toast.makeText(requireContext(), "Data cleared", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(),
+                        R.string.toast_data_cleared, Toast.LENGTH_SHORT).show()
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.dialog_cancel, null)
                 .show()
         }
 

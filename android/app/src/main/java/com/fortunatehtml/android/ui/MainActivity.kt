@@ -166,9 +166,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun navigateWebView(url: String) {
         val trimmed = url.trim()
+        // Allow only http and https to prevent injection via file://, javascript:,
+        // data:, blob:, content:, or other potentially dangerous URI schemes.
         val formatted = when {
             trimmed.startsWith("https://") || trimmed.startsWith("http://") -> trimmed
-            trimmed.startsWith("file://") || trimmed.startsWith("javascript:") -> return
+            trimmed.startsWith("file://")   ||
+            trimmed.startsWith("javascript:") ||
+            trimmed.startsWith("data:")    ||
+            trimmed.startsWith("blob:")    ||
+            trimmed.startsWith("content:") -> return
             else -> "https://$trimmed"
         }
         webView.loadUrl(formatted)

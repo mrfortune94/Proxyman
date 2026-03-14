@@ -39,7 +39,7 @@
         android:id="@+id/btnAddScope"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Add Scope Rule"
+        android:text="@string/btn_add_scope_rule"
         android:layout_marginBottom="12dp" />
 
     <TextView

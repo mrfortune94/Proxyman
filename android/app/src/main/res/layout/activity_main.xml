@@ -37,7 +37,7 @@
                 android:layout_height="36dp"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back"
+                android:contentDescription="@string/cd_btn_back"
                 android:tint="@color/on_surface" />
 
             <ImageButton
@@ -46,7 +46,7 @@
                 android:layout_height="36dp"
                 android:src="@android:drawable/ic_media_next"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Forward"
+                android:contentDescription="@string/cd_btn_forward"
                 android:tint="@color/on_surface" />
 
             <ImageButton
@@ -55,7 +55,7 @@
                 android:layout_height="36dp"
                 android:src="@android:drawable/ic_menu_rotate"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Refresh"
+                android:contentDescription="@string/cd_btn_refresh"
                 android:tint="@color/on_surface" />
 
             <EditText

@@ -52,4 +52,26 @@
     <string name="settings_disable_screenshots">Disable Screenshots</string>
     <string name="settings_biometric_lock">Biometric Lock for Projects</string>
     <string name="settings_review_agreement">Review Authorization Agreement</string>
+    <string name="btn_save_settings">Save Settings</string>
+
+    <!-- Browser navigation -->
+    <string name="cd_btn_back">Back</string>
+    <string name="cd_btn_forward">Forward</string>
+    <string name="cd_btn_refresh">Refresh</string>
+
+    <!-- Scope / Projects -->
+    <string name="btn_add_scope_rule">Add Scope Rule</string>
+    <string name="btn_create_project">Create Project</string>
+
+    <!-- Repeater -->
+    <string name="repeater_sending">Sending\u2026</string>
+    <string name="repeater_url_required">URL is required.</string>
+
+    <!-- Clear data dialog -->
+    <string name="dialog_clear_data_title">Clear All Data</string>
+    <string name="dialog_clear_data_message">This will delete all traffic history, projects, logs, and scope rules. This cannot be undone.</string>
+    <string name="dialog_clear_data_positive">Clear</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="toast_data_cleared">Data cleared</string>
+    <string name="toast_settings_saved">Settings saved</string>
 </resources>
