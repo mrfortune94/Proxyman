@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background"
+    android:padding="12dp">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Host (e.g. api.example.com or *.example.com)"
+        android:textColor="@color/text_secondary" android:textSize="12sp"
+        android:layout_marginBottom="4dp"/>
+    <EditText
+        android:id="@+id/scopeHost"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:singleLine="true"
+        android:inputType="textUri"
+        android:hint="api.example.com"
+        android:textColor="@color/on_surface"
+        android:textColorHint="@color/text_secondary"
+        android:layout_marginBottom="8dp" />
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Environment (local / development / staging / production)"
+        android:textColor="@color/text_secondary" android:textSize="12sp"
+        android:layout_marginBottom="4dp"/>
+    <EditText
+        android:id="@+id/scopeEnvironment"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:singleLine="true"
+        android:hint="development"
+        android:textColor="@color/on_surface"
+        android:textColorHint="@color/text_secondary"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnAddScope"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Add Scope Rule"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/scopeRulesList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/on_surface"
+        android:textSize="13sp"
+        android:fontFamily="monospace" />
+
+</LinearLayout>

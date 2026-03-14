@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Required to make HTTP/HTTPS requests from the in-app browser and Repeater -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required to post the ongoing notification while a capture session is active -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Required to show system notifications on Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Required to write exported HAR / JSON files to shared storage on Android <10 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <!-- Required for optional biometric lock on saved projects -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
         android:name=".FortunateHtmlApp"
@@ -31,23 +38,13 @@
             android:exported="false" />
 
         <activity
-            android:name=".ui.TrafficDetailActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".ui.BrowserActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
 
-        <service
-            android:name=".proxy.ProxyVpnService"
-            android:exported="false"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:foregroundServiceType="specialUse">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-        </service>
+        <activity
+            android:name=".ui.TrafficDetailActivity"
+            android:exported="false" />
 
     </application>
 

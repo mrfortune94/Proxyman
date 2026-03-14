@@ -1,13 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Fortunate HTML</string>
-    <string name="disclaimer_title">⚠️ Important Legal Disclaimer</string>
-    <string name="disclaimer_text">LEGAL DISCLAIMER AND TERMS OF USE\n\nBy using Fortunate HTML for Android, you acknowledge and agree to the following:\n\n1. AUTHORIZED USE ONLY\nThis application is designed for network debugging and analysis purposes. You must ONLY use this application on domains, networks, and systems for which you have EXPLICIT WRITTEN PERMISSION from the owner.\n\n2. PROHIBITION OF UNAUTHORIZED INTERCEPTION\nIntercepting, monitoring, or capturing network traffic on domains or systems without proper authorization is ILLEGAL in most jurisdictions and may violate federal and state laws including but not limited to:\n• The Computer Fraud and Abuse Act (CFAA)\n• The Electronic Communications Privacy Act (ECPA)\n• The Wiretap Act\n• Similar laws in your jurisdiction\n\n3. MITM (Man-in-the-Middle) FUNCTIONALITY\nThis application includes MITM proxy capabilities that can intercept HTTPS traffic. This feature must ONLY be used:\n• On your own devices and networks\n• On systems you own or have written authorization to test\n• For legitimate software development and debugging purposes\n• In compliance with all applicable laws and regulations\n\n4. USER RESPONSIBILITY\nYou are solely responsible for ensuring that your use of this application complies with all applicable laws, regulations, and agreements. The developers of this application assume NO LIABILITY for any misuse.\n\n5. NO WARRANTY\nThis application is provided \"AS IS\" without warranty of any kind. The developers are not responsible for any damages resulting from the use or misuse of this application.\n\n6. ACCEPTANCE\nBy checking the box below and tapping \"I Accept\", you confirm that you understand these terms and agree to use this application only for authorized purposes.</string>
-    <string name="accept_checkbox_text">I understand and agree that I will ONLY use this application on domains and systems for which I have explicit authorization</string>
-    <string name="accept_button">I Accept</string>
-    <string name="decline_button">I Decline</string>
-    <string name="empty_traffic">No traffic captured yet.\nTap the play button to start intercepting.</string>
+    <string name="app_name">Pocket API Inspector</string>
+
+    <!-- Disclaimer -->
+    <string name="disclaimer_title">Authorized Use Only</string>
+    <string name="disclaimer_body">This application is intended strictly for defensive testing, debugging, and observability of systems, APIs, websites, and applications that you own or are explicitly authorized to assess.\n\nBy proceeding, you confirm that:\n• you will use this app only on your own domains, applications, APIs, and environments, or those you have explicit written permission to test\n• you will not use this app on third-party targets without authorization\n• you understand you are responsible for complying with all applicable laws, policies, contracts, and platform rules\n• misuse is prohibited</string>
+    <string name="checkbox_authorized">I confirm I will use this tool only on systems I own or am explicitly authorized to test</string>
+    <string name="checkbox_responsibility">I understand misuse is prohibited and I accept responsibility for my actions</string>
+    <string name="btn_agree">Agree and Continue</string>
+    <string name="btn_exit">Exit</string>
+    <string name="disclaimer_review_title">Review Agreement</string>
+
+    <!-- Browser -->
     <string name="browser_title">In-App Browser</string>
-    <string name="browser_url_hint">Enter URL</string>
+    <string name="browser_url_hint">Enter URL…</string>
     <string name="action_open_browser">Open Browser</string>
+
+    <!-- Main / Inspector -->
+    <string name="tab_live">Live</string>
+    <string name="tab_request">Request</string>
+    <string name="tab_response">Response</string>
+    <string name="tab_repeater">Repeater</string>
+    <string name="tab_history">History</string>
+    <string name="tab_scope">Scope</string>
+    <string name="tab_projects">Projects</string>
+    <string name="tab_logs">Logs</string>
+    <string name="tab_settings">Settings</string>
+    <string name="empty_traffic">No traffic captured yet.\nBrowse in the WebView above or import a HAR file.</string>
+    <string name="action_import_har">Import HAR</string>
+    <string name="action_export">Export</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_about">About</string>
+    <string name="about_title">About Pocket API Inspector</string>
+    <string name="about_message">Pocket API Inspector v2.0\n\nA first-party API debugging and observability tool.\n\nCaptures traffic from:\n• In-app WebView\n• OkHttp in-app requests\n• Imported HAR/JSON files\n• SDK-instrumented apps you own\n\nFor authorized use only.</string>
+
+    <!-- Source labels -->
+    <string name="source_webview">WebView</string>
+    <string name="source_okhttp">OkHttp</string>
+    <string name="source_sdk">SDK</string>
+    <string name="source_har">HAR Import</string>
+    <string name="source_proxy">Reverse Proxy</string>
+
+    <!-- Settings -->
+    <string name="settings_theme">Theme</string>
+    <string name="settings_timeout">Request Timeout (seconds)</string>
+    <string name="settings_body_limit">Body Preview Limit (bytes)</string>
+    <string name="settings_export_location">Export Location</string>
+    <string name="settings_clear_data">Clear All Local Data</string>
+    <string name="settings_user_agent">User-Agent Override</string>
+    <string name="settings_json_pretty">Pretty-Print JSON</string>
+    <string name="settings_disable_screenshots">Disable Screenshots</string>
+    <string name="settings_biometric_lock">Biometric Lock for Projects</string>
+    <string name="settings_review_agreement">Review Authorization Agreement</string>
 </resources>
