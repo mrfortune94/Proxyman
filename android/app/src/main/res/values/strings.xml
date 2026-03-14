@@ -7,4 +7,7 @@
     <string name="accept_button">I Accept</string>
     <string name="decline_button">I Decline</string>
     <string name="empty_traffic">No traffic captured yet.\nTap the play button to start intercepting.</string>
+    <string name="browser_title">In-App Browser</string>
+    <string name="browser_url_hint">Enter URL</string>
+    <string name="action_open_browser">Open Browser</string>
 </resources>

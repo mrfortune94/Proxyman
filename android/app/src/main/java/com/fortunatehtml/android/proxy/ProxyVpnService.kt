@@ -50,6 +50,15 @@ class ProxyVpnService : VpnService() {
             .addDnsServer("8.8.8.8")
             .setMtu(1500)
 
+        // Restrict the VPN tunnel to this app's own traffic so that only the
+        // in-app browser is routed through the proxy. All other apps on the
+        // device are unaffected.
+        try {
+            builder.addAllowedApplication(packageName)
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Failed to restrict VPN to app package; all device traffic will be intercepted", e)
+        }
+
         // On Android 10+ configure the system HTTP proxy so that apps using the
         // system proxy selector automatically route their traffic through the local
         // proxy server without requiring raw IP-packet forwarding.
@@ -122,5 +131,6 @@ class ProxyVpnService : VpnService() {
         const val ACTION_START = "com.fortunatehtml.android.START_VPN"
         const val ACTION_STOP = "com.fortunatehtml.android.STOP_VPN"
         private const val NOTIFICATION_ID = 1
+        private const val TAG = "ProxyVpnService"
     }
 }
