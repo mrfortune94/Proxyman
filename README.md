@@ -1,60 +1,104 @@
+# Fortunate HTML
 
-<p align="center">
-  <img src="/screenshots/banner_v2.png" alt="Proxyman: Debug HTTP Like a Pro banner" width="100%" height="auto"/>
-</p>
+A network debugging proxy for Android with MITM (Man-in-the-Middle) interception capability. Capture, inspect, and analyze HTTP/HTTPS traffic directly on your Android device.
 
-<p align="center">
-  <a aria-label="Follow Proxyman on Twitter" href="https://twitter.com/proxyman_app">
-    <img alt="" src="https://img.shields.io/badge/Follow-%40proxyman__app-black.svg?style=for-the-badge&logo=Twitter">
-  </a>
-</p>
+## ⚠️ Disclaimer
 
-<img src="/screenshots/new_dashboard_macOS_26.jpg" alt="Proxyman Dashboard UI for macOS 26 Tahoe" width="100%" height="auto"/>
+**This application is for authorized use only.** You must only use this application on domains, networks, and systems for which you have explicit written permission from the owner. Unauthorized interception of network traffic is illegal in most jurisdictions.
 
 ## Features
-* 💻 Native macOS app. Written by Swift. Powered by Apple SwiftNIO for high-performance network applications.
-* 🍎 Fully supports Apple Chip (e.g M1, M2, M3, M4, etc). 
-* 💫 Built for macOS 26 Tahoe
-* ✅ Capture HTTP/HTTPS requests/responses and WebSocket from Web Browsers, iOS, and Android devices with a few clicks.
-* ✅ Modern and intuitive UI
-* 🔍 Multiple filters
-* Command Palette — Quickly search and access requests, responses, scripts, and more. Work faster without leaving your keyboard!
-* Comprehensive Guidelines to set up with iOS simulator and iOS and Android devices.
-* Basic debugging tools: Compose, Repeat, Wildcard/Regex Filter, Multiple Filters, Customize Columns, Toolbar...
-* Advanced Tools: Breakpoint, Map Local, Map Remote, Backlist, External Proxying, No Caching, Protobuf, Clear Cache, Custom Certificates, Scripting, Network Conditions, Reverse Proxy, Diff, Access Control, DNS Spoofing, etc
-* Automatic Setup for Backend Development: Auto capture HTTP(s) traffic from NodeJS, Ruby, and Python.
-* Supported macOS 13+ or later
 
-## Proxyman Team Workspace (Team Subscription only)
-- Sign in using **Proxyman Team Workspace**: Manage your team workspace account and active the PRO license.
-- Share Proxyman logs or HAR files with your team and review them online with role-based access control (Admin, Developers, and Public)
-- Role-based access control with secure authentication
+* 📱 Native Android application written in Kotlin
+* 🔒 MITM proxy for HTTPS traffic interception
+* 🌐 HTTP/HTTPS request and response capture
+* 📋 Detailed traffic inspection (headers, body, status codes, timing)
+* 🔑 Custom CA certificate generation and management
+* 🛡️ VPN-based traffic routing — no root required
+* ⚖️ Built-in legal disclaimer requiring user acceptance
+* 🎨 Material Design UI with color-coded status indicators
 
-## Download
-* [Proxyman 6.6.0](https://proxyman.com/release/osx/Proxyman_latest.dmg)
-* [Full Changelogs](https://github.com/ProxymanApp/Proxyman/releases)
+## Project Structure
 
 ```
-brew install --cask proxyman
+android/
+├── app/
+│   ├── build.gradle.kts          # App build configuration
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── AndroidManifest.xml
+│   │   │   ├── java/com/fortunatehtml/android/
+│   │   │   │   ├── FortunateHtmlApp.kt         # Application class
+│   │   │   │   ├── data/                        # Data layer
+│   │   │   │   │   ├── PreferencesManager.kt    # SharedPreferences wrapper
+│   │   │   │   │   └── TrafficRepository.kt     # Traffic data store
+│   │   │   │   ├── model/                       # Data models
+│   │   │   │   │   └── TrafficEntry.kt          # Traffic entry model
+│   │   │   │   ├── proxy/                       # Proxy engine
+│   │   │   │   │   ├── CertificateManager.kt    # CA & host cert generation
+│   │   │   │   │   ├── ProxyServer.kt           # HTTP/HTTPS proxy server
+│   │   │   │   │   ├── ProxyVpnService.kt       # Android VPN service
+│   │   │   │   │   └── SSLContextHelper.kt      # SSL utilities
+│   │   │   │   └── ui/                          # UI layer
+│   │   │   │       ├── DisclaimerActivity.kt    # Legal disclaimer screen
+│   │   │   │       ├── MainActivity.kt          # Main traffic list
+│   │   │   │       ├── TrafficAdapter.kt        # RecyclerView adapter
+│   │   │   │       └── TrafficDetailActivity.kt # Request detail view
+│   │   │   └── res/                             # Android resources
+│   │   └── test/                                # Unit tests
+│   └── proguard-rules.pro
+├── build.gradle.kts              # Root build configuration
+├── settings.gradle.kts
+└── gradle.properties
 ```
 
-### Proxyman for iOS
-- 🍎 Native iOS app. 
-- ⚡️ Directly capture HTTPS Traffic from your iOS device. No MacBook is needed.
-- ✅ Block List, Map Local, and Breakpoint are ready
-- Screenshot: https://proxyman.com/ios
-- Download from App Store: https://apps.apple.com/us/app/proxyman/id1551292695
+## Building the APK
 
-## Have a problem?
+### Prerequisites
 
-- Open a GitHub ticket
-- 👉 Technical issues on [Proxyman Discord](https://discord.gg/tjWEq6Da42)
-- nghia@proxyman.com & support@proxyman.com
+- Android Studio Hedgehog (2023.1.1) or later
+- JDK 17+
+- Android SDK 34
 
----
+### Build Steps
 
-Proxyman is developed by a small engineering team, but we're dedicated to shipping Proxyman that tailored for each platform (macOS, iOS, and Windows). It facilitates how we debug apps and brings all developers joy and pleasure.
+1. Open the `android/` directory in Android Studio
+2. Sync Gradle and let dependencies download
+3. Build the project: **Build → Make Project**
+4. Generate APK: **Build → Build Bundle(s) / APK(s) → Build APK(s)**
 
-We're genuinely happy if you purchase a license to support the development ❤️
+Or build from the command line:
 
-Proxyman team.
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+The debug APK will be at `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## How It Works
+
+1. **Disclaimer**: On first launch, users must accept the legal disclaimer confirming they will only use the app on authorized domains
+2. **VPN Service**: The app creates a local VPN to route device traffic through the proxy
+3. **MITM Proxy**: A local proxy server intercepts HTTP and HTTPS connections using dynamically generated certificates
+4. **Traffic Capture**: All intercepted requests/responses are displayed in real-time in the traffic list
+5. **Certificate Installation**: Users can export the CA certificate to install on their device for HTTPS interception
+
+## Setting Up HTTPS Interception
+
+1. Start the proxy from the main screen (tap the play button)
+2. Open the menu (⋮) and select **Export CA Certificate**
+3. Install the exported certificate on your device:
+   - Go to **Settings → Security → Install certificates**
+   - Select the exported PEM file
+4. HTTPS traffic will now be visible in the traffic list
+
+## Running Tests
+
+```bash
+cd android
+./gradlew test
+```
+
+## Have a Problem?
+
+Open a GitHub ticket to report issues or request features.
