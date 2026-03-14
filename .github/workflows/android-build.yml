@@ -29,11 +29,11 @@ jobs:
 
       - name: Run unit tests
         working-directory: android
-        run: gradle test
+        run: ./gradlew test
 
       - name: Build debug APK
         working-directory: android
-        run: gradle assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
