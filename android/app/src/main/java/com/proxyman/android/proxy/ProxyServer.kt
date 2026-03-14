@@ -433,7 +433,7 @@ class ProxyServer(
 
             remoteSocket.close()
         } catch (e: Exception) {
-            trafficRepository.updateEntry(target) { existing ->
+            trafficRepository.updateEntry(entry.id) { existing ->
                 existing.copy(state = TrafficEntry.State.FAILED)
             }
         }

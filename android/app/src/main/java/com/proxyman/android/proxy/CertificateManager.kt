@@ -60,7 +60,7 @@ class CertificateManager(private val context: Context) {
         }
     }
 
-    internal fun generateCA() {
+    private fun generateCA() {
         val keyPairGenerator = KeyPairGenerator.getInstance("RSA", BouncyCastleProvider.PROVIDER_NAME)
         keyPairGenerator.initialize(2048, SecureRandom())
         caKeyPair = keyPairGenerator.generateKeyPair()
