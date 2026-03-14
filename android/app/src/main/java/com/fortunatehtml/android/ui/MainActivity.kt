@@ -24,6 +24,7 @@ import com.fortunatehtml.android.R
 import com.fortunatehtml.android.data.PreferencesManager
 import com.fortunatehtml.android.model.TrafficEntry
 import com.fortunatehtml.android.ui.fragment.*
+import com.fortunatehtml.android.util.UrlUtils
 
 /**
  * Main split-screen activity:
@@ -165,18 +166,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun navigateWebView(url: String) {
-        val trimmed = url.trim()
-        // Allow only http and https to prevent injection via file://, javascript:,
-        // data:, blob:, content:, or other potentially dangerous URI schemes.
-        val formatted = when {
-            trimmed.startsWith("https://") || trimmed.startsWith("http://") -> trimmed
-            trimmed.startsWith("file://")   ||
-            trimmed.startsWith("javascript:") ||
-            trimmed.startsWith("data:")    ||
-            trimmed.startsWith("blob:")    ||
-            trimmed.startsWith("content:") -> return
-            else -> "https://$trimmed"
-        }
+        // UrlUtils.sanitise() blocks dangerous schemes (file://, javascript:, data:, blob:, content:)
+        val formatted = UrlUtils.sanitise(url) ?: return
         webView.loadUrl(formatted)
     }
 

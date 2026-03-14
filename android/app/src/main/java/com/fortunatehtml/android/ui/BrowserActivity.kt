@@ -13,6 +13,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.fortunatehtml.android.FortunateHtmlApp
 import com.fortunatehtml.android.R
+import com.fortunatehtml.android.util.UrlUtils
 import com.fortunatehtml.android.data.TrafficRepository
 import com.fortunatehtml.android.model.TrafficEntry
 
@@ -128,19 +129,8 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun navigateTo(url: String) {
-        val trimmed = url.trim()
-        // Allow only http and https to prevent injection via file://, javascript:,
-        // data:, blob:, content:, or other potentially dangerous URI schemes.
-        val formattedUrl = when {
-            trimmed.startsWith("https://") -> trimmed
-            trimmed.startsWith("http://")  -> trimmed
-            trimmed.startsWith("file://")   ||
-            trimmed.startsWith("javascript:") ||
-            trimmed.startsWith("data:")    ||
-            trimmed.startsWith("blob:")    ||
-            trimmed.startsWith("content:") -> return
-            else -> "https://$trimmed"
-        }
+        // UrlUtils.sanitise() blocks dangerous schemes (file://, javascript:, data:, blob:, content:)
+        val formattedUrl = UrlUtils.sanitise(url) ?: return
         webView.loadUrl(formattedUrl)
     }
 

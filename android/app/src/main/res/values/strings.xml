@@ -62,6 +62,12 @@
     <!-- Scope / Projects -->
     <string name="btn_add_scope_rule">Add Scope Rule</string>
     <string name="btn_create_project">Create Project</string>
+    <string name="error_host_required">Host is required</string>
+    <string name="error_name_required">Name is required</string>
+    <string name="toast_scope_added">Scope rule added</string>
+    <string name="toast_project_created">Project created</string>
+    <string name="empty_scope_rules">No scope rules defined.</string>
+    <string name="empty_projects">No projects yet.</string>
 
     <!-- Repeater -->
     <string name="repeater_sending">Sending\u2026</string>

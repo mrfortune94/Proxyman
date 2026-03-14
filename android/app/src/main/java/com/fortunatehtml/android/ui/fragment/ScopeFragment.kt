@@ -33,7 +33,7 @@ class ScopeFragment : Fragment() {
         val db  = app.database
 
         db.scopeRuleDao().getAllLive().observe(viewLifecycleOwner) { rules ->
-            tvRules.text = if (rules.isEmpty()) "No scope rules defined."
+            tvRules.text = if (rules.isEmpty()) getString(R.string.empty_scope_rules)
             else rules.joinToString("\n") { "[${it.environment}] ${it.host}" }
         }
 
@@ -41,14 +41,14 @@ class ScopeFragment : Fragment() {
             val host = etHost.text.toString().trim()
             val env  = etEnv.text.toString().trim().ifEmpty { "development" }
             if (host.isEmpty()) {
-                Toast.makeText(requireContext(), "Host is required", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.error_host_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             CoroutineScope(Dispatchers.IO).launch {
                 db.scopeRuleDao().insert(ScopeRule(host = host, environment = env))
                 withContext(Dispatchers.Main) {
                     etHost.text.clear()
-                    Toast.makeText(requireContext(), "Scope rule added", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_scope_added, Toast.LENGTH_SHORT).show()
                 }
             }
         }

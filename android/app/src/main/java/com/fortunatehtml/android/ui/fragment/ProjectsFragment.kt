@@ -33,7 +33,7 @@ class ProjectsFragment : Fragment() {
         val db  = app.database
 
         db.projectDao().getAllLive().observe(viewLifecycleOwner) { projects ->
-            tvProjects.text = if (projects.isEmpty()) "No projects yet."
+            tvProjects.text = if (projects.isEmpty()) getString(R.string.empty_projects)
             else projects.joinToString("\n\n") { p ->
                 "\uD83D\uDCC1 ${p.name}\n${p.description.ifEmpty { "No description" }}"
             }
@@ -43,7 +43,7 @@ class ProjectsFragment : Fragment() {
             val name = etName.text.toString().trim()
             val desc = etDesc.text.toString().trim()
             if (name.isEmpty()) {
-                Toast.makeText(requireContext(), "Name is required", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.error_name_required, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             CoroutineScope(Dispatchers.IO).launch {
@@ -51,7 +51,7 @@ class ProjectsFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     etName.text.clear()
                     etDesc.text.clear()
-                    Toast.makeText(requireContext(), "Project created", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_project_created, Toast.LENGTH_SHORT).show()
                 }
             }
         }
