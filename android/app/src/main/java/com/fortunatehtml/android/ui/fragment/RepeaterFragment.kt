@@ -6,15 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.fortunatehtml.android.FortunateHtmlApp
 import com.fortunatehtml.android.R
 import com.fortunatehtml.android.data.PreferencesManager
+import com.fortunatehtml.android.data.db.entity.LogEntry
 import com.fortunatehtml.android.network.OkHttpInspector
 import com.fortunatehtml.android.ui.viewmodel.InspectorViewModel
 import com.google.gson.GsonBuilder
@@ -29,6 +32,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.net.InetSocketAddress
 import java.net.Proxy
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 /**
@@ -39,6 +43,9 @@ import java.util.concurrent.TimeUnit
  *
  * Supports optional self-signed cert acceptance and optional external forward proxy
  * (user-configured in Settings). These settings affect only THIS app's OkHttp client.
+ *
+ * Scope enforcement: Before sending requests, validates the target host against
+ * configured scope rules to prevent accidental out-of-scope requests.
  */
 class RepeaterFragment : Fragment() {
 
@@ -52,10 +59,14 @@ class RepeaterFragment : Fragment() {
     private lateinit var tvResponse: TextView
     private lateinit var tvTiming: TextView
     private lateinit var tvDiff: TextView
+    private lateinit var tvScopeStatus: TextView
     private lateinit var btnSend: Button
     private lateinit var btnLoad: Button
 
     private val ioScope = CoroutineScope(Dispatchers.IO)
+    
+    // Cache of in-scope hosts for quick validation
+    private var scopeHosts: Set<String> = emptySet()
 
     // Stores the first response for diff comparison
     private var originalResponse: String? = null
@@ -73,8 +84,24 @@ class RepeaterFragment : Fragment() {
         tvResponse    = view.findViewById(R.id.repeaterResponse)
         tvTiming      = view.findViewById(R.id.repeaterTiming)
         tvDiff        = view.findViewById(R.id.repeaterDiff)
+        tvScopeStatus = view.findViewById(R.id.repeaterScopeStatus)
         btnSend       = view.findViewById(R.id.repeaterSend)
         btnLoad       = view.findViewById(R.id.btnLoadFromSelected)
+
+        val app = requireActivity().application as FortunateHtmlApp
+
+        // Load and observe scope rules for real-time enforcement
+        app.database.scopeRuleDao().getAllLive().observe(viewLifecycleOwner) { rules ->
+            scopeHosts = rules.filter { it.isEnabled }.map { it.host.lowercase() }.toSet()
+            updateScopeStatus()
+        }
+
+        // Update scope status when URL changes
+        etUrl.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) { updateScopeStatus() }
+        })
 
         spinnerMethod.adapter = ArrayAdapter(
             requireContext(),
@@ -93,11 +120,115 @@ class RepeaterFragment : Fragment() {
                 )
                 etBody.setText(entry.requestBody ?: "")
                 originalResponse = entry.responseBody
+                updateScopeStatus()
                 Toast.makeText(requireContext(), "Loaded from selected entry", Toast.LENGTH_SHORT).show()
             } ?: Toast.makeText(requireContext(), "No entry selected in Live tab", Toast.LENGTH_SHORT).show()
         }
 
-        btnSend.setOnClickListener { sendRequest() }
+        btnSend.setOnClickListener { validateAndSendRequest() }
+    }
+
+    /**
+     * Updates the scope status indicator based on the current URL and scope rules.
+     */
+    private fun updateScopeStatus() {
+        val url = etUrl.text.toString().trim()
+        if (url.isEmpty()) {
+            tvScopeStatus.text = ""
+            tvScopeStatus.visibility = View.GONE
+            return
+        }
+
+        val host = runCatching { URI(url).host?.lowercase() }.getOrNull()
+        if (host == null) {
+            tvScopeStatus.text = "⚠️ Invalid URL"
+            tvScopeStatus.setTextColor(resources.getColor(R.color.status_error, null))
+            tvScopeStatus.visibility = View.VISIBLE
+            return
+        }
+
+        val inScope = isHostInScope(host)
+        if (scopeHosts.isEmpty()) {
+            tvScopeStatus.text = "ℹ️ No scope rules defined (all hosts allowed)"
+            tvScopeStatus.setTextColor(resources.getColor(R.color.text_secondary, null))
+        } else if (inScope) {
+            tvScopeStatus.text = "✓ In scope: $host"
+            tvScopeStatus.setTextColor(resources.getColor(R.color.status_success, null))
+        } else {
+            tvScopeStatus.text = "⚠️ Out of scope: $host"
+            tvScopeStatus.setTextColor(resources.getColor(R.color.status_error, null))
+        }
+        tvScopeStatus.visibility = View.VISIBLE
+    }
+
+    /**
+     * Check if a host matches any enabled scope rule.
+     * Supports wildcard matching (e.g., "*.example.com" matches "api.example.com")
+     */
+    private fun isHostInScope(host: String): Boolean {
+        if (scopeHosts.isEmpty()) return true // No rules = everything in scope
+
+        val lowerHost = host.lowercase()
+        for (scopeHost in scopeHosts) {
+            if (scopeHost.startsWith("*.")) {
+                // Wildcard: *.example.com matches api.example.com
+                val domain = scopeHost.substring(2)
+                if (lowerHost == domain || lowerHost.endsWith(".$domain")) {
+                    return true
+                }
+            } else if (lowerHost == scopeHost) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Validates scope before sending request. Shows confirmation for out-of-scope requests.
+     */
+    private fun validateAndSendRequest() {
+        val url = etUrl.text.toString().trim()
+        if (url.isEmpty()) {
+            tvResponse.text = getString(R.string.repeater_url_required)
+            return
+        }
+
+        val host = runCatching { URI(url).host?.lowercase() }.getOrNull()
+        if (host == null) {
+            tvResponse.text = "Invalid URL format"
+            return
+        }
+
+        // If scope rules exist and host is out of scope, show confirmation
+        if (scopeHosts.isNotEmpty() && !isHostInScope(host)) {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Out of Scope Request")
+                .setMessage("The host '$host' is not in your defined scope rules.\n\nAre you sure you want to send this request?")
+                .setPositiveButton("Send Anyway") { _, _ ->
+                    logScopeOverride(host)
+                    sendRequest()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } else {
+            sendRequest()
+        }
+    }
+
+    /**
+     * Log when user explicitly overrides scope restriction
+     */
+    private fun logScopeOverride(host: String) {
+        val app = requireActivity().application as FortunateHtmlApp
+        ioScope.launch {
+            app.database.logDao().insert(
+                LogEntry(
+                    category = "scope",
+                    message = "Out-of-scope request sent",
+                    detail = "Host: $host (user override)"
+                )
+            )
+        }
     }
 
     private fun sendRequest() {
