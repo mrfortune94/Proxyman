@@ -58,6 +58,33 @@
                 android:contentDescription="@string/cd_btn_refresh"
                 android:tint="@color/on_surface" />
 
+            <ImageButton
+                android:id="@+id/btnScrollUp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/arrow_up_float"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_btn_scroll_up"
+                android:tint="@color/on_surface" />
+
+            <ImageButton
+                android:id="@+id/btnScrollDown"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/arrow_down_float"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_btn_scroll_down"
+                android:tint="@color/on_surface" />
+
+            <ImageButton
+                android:id="@+id/btnFullscreen"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_menu_view"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/cd_btn_fullscreen"
+                android:tint="@color/on_surface" />
+
             <EditText
                 android:id="@+id/urlBar"
                 android:layout_width="0dp"

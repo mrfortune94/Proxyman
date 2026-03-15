@@ -58,6 +58,9 @@
     <string name="cd_btn_back">Back</string>
     <string name="cd_btn_forward">Forward</string>
     <string name="cd_btn_refresh">Refresh</string>
+    <string name="cd_btn_scroll_up">Scroll Up</string>
+    <string name="cd_btn_scroll_down">Scroll Down</string>
+    <string name="cd_btn_fullscreen">Open Fullscreen</string>
 
     <!-- Scope / Projects -->
     <string name="btn_add_scope_rule">Add Scope Rule</string>

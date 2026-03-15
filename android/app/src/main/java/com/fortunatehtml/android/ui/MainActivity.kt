@@ -1,5 +1,6 @@
 package com.fortunatehtml.android.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -40,9 +41,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnBack: ImageButton
     private lateinit var btnForward: ImageButton
     private lateinit var btnRefresh: ImageButton
+    private lateinit var btnScrollUp: ImageButton
+    private lateinit var btnScrollDown: ImageButton
+    private lateinit var btnFullscreen: ImageButton
     private lateinit var currentUrlText: TextView
     private lateinit var tabLayout: TabLayout
     private lateinit var viewPager: ViewPager2
+
+    // Track current URL for state retention
+    private var currentWebViewUrl: String = DEFAULT_URL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,17 +67,33 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.title = getString(R.string.app_name)
 
-        setupWebView()
+        // Restore URL from saved state (rotation/config change)
+        savedInstanceState?.getString(KEY_CURRENT_URL)?.let {
+            currentWebViewUrl = it
+        }
+
+        setupWebView(savedInstanceState)
         setupInspectorTabs()
     }
 
-    private fun setupWebView() {
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save current URL to preserve state during rotation/config change
+        outState.putString(KEY_CURRENT_URL, currentWebViewUrl)
+        // Save WebView state for full restoration (scroll position, form data, etc.)
+        webView.saveState(outState)
+    }
+
+    private fun setupWebView(savedInstanceState: Bundle?) {
         webView        = findViewById(R.id.webView)
         urlBar         = findViewById(R.id.urlBar)
         progressBar    = findViewById(R.id.webProgressBar)
         btnBack        = findViewById(R.id.btnBack)
         btnForward     = findViewById(R.id.btnForward)
         btnRefresh     = findViewById(R.id.btnRefresh)
+        btnScrollUp    = findViewById(R.id.btnScrollUp)
+        btnScrollDown  = findViewById(R.id.btnScrollDown)
+        btnFullscreen  = findViewById(R.id.btnFullscreen)
         currentUrlText = findViewById(R.id.currentUrl)
 
         val trafficRepository = (application as FortunateHtmlApp).trafficRepository
@@ -100,6 +123,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView, url: String,
                                        favicon: android.graphics.Bitmap?) {
                 currentUrlText.text  = url
+                currentWebViewUrl    = url  // Track URL for state retention
                 btnBack.isEnabled    = webView.canGoBack()
                 btnForward.isEnabled = webView.canGoForward()
                 // UI-only update; resource-level capture is handled by shouldInterceptRequest
@@ -108,6 +132,7 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView, url: String) {
                 urlBar.setText(url)
                 currentUrlText.text  = url
+                currentWebViewUrl    = url  // Track URL for state retention
                 btnBack.isEnabled    = webView.canGoBack()
                 btnForward.isEnabled = webView.canGoForward()
             }
@@ -171,8 +196,29 @@ class MainActivity : AppCompatActivity() {
         btnBack.setOnClickListener    { if (webView.canGoBack())    webView.goBack()    }
         btnForward.setOnClickListener { if (webView.canGoForward()) webView.goForward() }
         btnRefresh.setOnClickListener { webView.reload() }
+        
+        // Scroll controls - scroll by 300 pixels per click
+        btnScrollUp.setOnClickListener {
+            webView.scrollBy(0, -SCROLL_AMOUNT)
+        }
+        btnScrollDown.setOnClickListener {
+            webView.scrollBy(0, SCROLL_AMOUNT)
+        }
+        
+        // Fullscreen button - opens current URL in dedicated BrowserActivity
+        btnFullscreen.setOnClickListener {
+            val intent = Intent(this, BrowserActivity::class.java)
+            intent.putExtra(BrowserActivity.EXTRA_URL, currentWebViewUrl)
+            startActivity(intent)
+        }
 
-        webView.loadUrl(DEFAULT_URL)
+        // Restore WebView state if available (preserves scroll position, form data, etc.)
+        // Otherwise load the default/current URL
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState)
+        } else {
+            webView.loadUrl(currentWebViewUrl)
+        }
     }
 
     private fun setupInspectorTabs() {
@@ -252,6 +298,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val DEFAULT_URL = "about:blank"
+        private const val SCROLL_AMOUNT = 300  // Pixels to scroll per button click
+        private const val KEY_CURRENT_URL = "current_webview_url"
     }
 
 }

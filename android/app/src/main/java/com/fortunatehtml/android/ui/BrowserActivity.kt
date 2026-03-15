@@ -37,6 +37,9 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var urlBar: EditText
     private lateinit var progressBar: ProgressBar
     private lateinit var trafficRepository: TrafficRepository
+    
+    // Track current URL for state retention
+    private var currentUrl: String = DEFAULT_URL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +56,26 @@ class BrowserActivity : AppCompatActivity() {
         setupUrlBar()
         setupBackHandler()
 
-        webView.loadUrl(DEFAULT_URL)
+        // Restore URL from saved state (rotation/config change) or get from Intent
+        val urlFromState = savedInstanceState?.getString(KEY_CURRENT_URL)
+        val urlFromIntent = intent.getStringExtra(EXTRA_URL)
+        currentUrl = urlFromState ?: urlFromIntent ?: DEFAULT_URL
+
+        // Restore WebView state if available (preserves scroll position, form data, etc.)
+        // Otherwise load the URL
+        if (savedInstanceState != null) {
+            webView.restoreState(savedInstanceState)
+        } else {
+            webView.loadUrl(currentUrl)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save current URL to preserve state during rotation/config change
+        outState.putString(KEY_CURRENT_URL, currentUrl)
+        // Save WebView state for full restoration (scroll position, form data, etc.)
+        webView.saveState(outState)
     }
 
     private fun setupToolbar() {
@@ -87,6 +109,7 @@ class BrowserActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView, url: String,
                                        favicon: android.graphics.Bitmap?) {
+                currentUrl = url  // Track URL for state retention
                 // Record page navigation as a WebView-sourced traffic entry (URL only)
                 val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return
                 trafficRepository.addEntry(
@@ -102,6 +125,7 @@ class BrowserActivity : AppCompatActivity() {
             }
 
             override fun onPageFinished(view: WebView, url: String) {
+                currentUrl = url  // Track URL for state retention
                 urlBar.setText(url)
             }
         }
@@ -157,5 +181,7 @@ class BrowserActivity : AppCompatActivity() {
 
     companion object {
         private const val DEFAULT_URL = "about:blank"
+        private const val KEY_CURRENT_URL = "current_browser_url"
+        const val EXTRA_URL = "extra_url"  // Intent extra key for URL
     }
 }
