@@ -66,11 +66,13 @@ class HistoryFragment : Fragment() {
         val btnExportHar = view.findViewById<Button>(R.id.btnExportHar)
         val btnClear     = view.findViewById<Button>(R.id.btnClearHistory)
 
-        adapter = TrafficAdapter { entry ->
-            val intent = Intent(requireContext(), TrafficDetailActivity::class.java)
-            intent.putExtra(TrafficDetailActivity.EXTRA_ENTRY_ID, entry.id)
-            startActivity(intent)
-        }
+        adapter = TrafficAdapter(
+            onItemClick = { entry ->
+                val intent = Intent(requireContext(), TrafficDetailActivity::class.java)
+                intent.putExtra(TrafficDetailActivity.EXTRA_ENTRY_ID, entry.id)
+                startActivity(intent)
+            }
+        )
 
         recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -124,11 +126,32 @@ class HistoryFragment : Fragment() {
     private fun importHar(uri: Uri) {
         val app = requireActivity().application as FortunateHtmlApp
         CoroutineScope(Dispatchers.IO).launch {
-            runCatching {
-                val stream  = requireContext().contentResolver.openInputStream(uri) ?: return@runCatching
-                val entries = HarImporter().import(stream)
+            val stream = requireContext().contentResolver.openInputStream(uri)
+            if (stream == null) {
                 withContext(Dispatchers.Main) {
-                    entries.forEach { e ->
+                    Toast.makeText(requireContext(), "Could not open file", Toast.LENGTH_SHORT).show()
+                }
+                // Log the error
+                app.database.logDao().insert(
+                    com.fortunatehtml.android.data.db.entity.LogEntry(
+                        category = "import",
+                        message = "HAR import failed",
+                        detail = "Could not open file stream"
+                    )
+                )
+                return@launch
+            }
+
+            val result = HarImporter().importWithResult(stream)
+            
+            withContext(Dispatchers.Main) {
+                if (!result.success && result.entries.isEmpty()) {
+                    // Complete failure
+                    val errorMsg = result.errors.firstOrNull() ?: "Unknown error"
+                    Toast.makeText(requireContext(), "Import failed: $errorMsg", Toast.LENGTH_LONG).show()
+                } else {
+                    // Success or partial success
+                    result.entries.forEach { e ->
                         app.trafficRepository.addEntry(
                             TrafficEntry(
                                 method          = e.method,
@@ -145,13 +168,30 @@ class HistoryFragment : Fragment() {
                             )
                         )
                     }
-                    Toast.makeText(
-                        requireContext(),
-                        "Imported ${entries.size} entries",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    
+                    val message = if (result.errors.isEmpty()) {
+                        "Imported ${result.entries.size} entries"
+                    } else {
+                        "Imported ${result.entries.size} entries (${result.errors.size} failed)"
+                    }
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                 }
             }
+            
+            // Log the import result
+            val detailMessage = buildString {
+                append("Imported ${result.entries.size} entries")
+                if (result.errors.isNotEmpty()) {
+                    append(", ${result.errors.size} errors")
+                }
+            }
+            app.database.logDao().insert(
+                com.fortunatehtml.android.data.db.entity.LogEntry(
+                    category = "import",
+                    message = if (result.success) "HAR import successful" else "HAR import with errors",
+                    detail = detailMessage
+                )
+            )
         }
     }
 

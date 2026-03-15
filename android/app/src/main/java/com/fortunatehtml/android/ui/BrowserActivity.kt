@@ -66,6 +66,22 @@ class BrowserActivity : AppCompatActivity() {
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
+            // Enable mixed content mode for compatibility (allows audio/video/images over HTTP)
+            mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            // Enable additional settings for better browser experience
+            loadWithOverviewMode = true
+            useWideViewPort = true
+            builtInZoomControls = true
+            displayZoomControls = false
+            setSupportZoom(true)
+            // Allow content and file access (file URLs are blocked by UrlUtils)
+            allowContentAccess = true
+            allowFileAccess = false  // Blocked for security
+            // Enable caching
+            cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
+            databaseEnabled = true
+            // Enable media playback
+            mediaPlaybackRequiresUserGesture = false
         }
 
         webView.webViewClient = object : WebViewClient() {

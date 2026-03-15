@@ -30,4 +30,6 @@
     <color name="source_sdk">#AB47BC</color>
     <color name="source_har">#FFA726</color>
     <color name="source_proxy">#26C6DA</color>
+    <!-- Selection/highlight colors -->
+    <color name="selected_item_background">#1A2196F3</color>
 </resources>
