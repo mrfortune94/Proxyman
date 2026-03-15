@@ -1,11 +1,9 @@
 package com.fortunatehtml.android.ui
 
-import android.net.http.SslError
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.webkit.SslErrorHandler
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -13,37 +11,41 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import com.fortunatehtml.android.FortunateHtmlApp
 import com.fortunatehtml.android.R
-import com.fortunatehtml.android.proxy.CertificateManager
+import com.fortunatehtml.android.util.UrlUtils
+import com.fortunatehtml.android.data.TrafficRepository
+import com.fortunatehtml.android.model.TrafficEntry
 
 /**
- * In-app browser activity that routes traffic through the local MITM proxy.
+ * In-app browser activity backed by an Android WebView.
  *
- * The WebView is configured to trust certificates signed by the proxy CA so that
- * HTTPS connections intercepted by the proxy do not produce a
- * net::ERR_CERT_AUTHORITY_INVALID error. Only SSL errors with error code
- * [SslError.SSL_UNTRUSTED] and an issuer matching the proxy CA are accepted;
- * all other SSL errors (expired, hostname mismatch, etc.) are rejected.
+ * Traffic visibility note:
+ * Android's WebView does not expose full request/response bodies to the host app.
+ * We can observe:
+ *   - page navigations via shouldOverrideUrlLoading / onPageStarted / onPageFinished
+ *   - resource loads via onLoadResource (URL only, no headers or body)
  *
- * Because the VPN service restricts its tunnel to this app's package, only
- * traffic from this in-app browser is routed through the proxy.
+ * Full request/response inspection requires using the DevTools Protocol via
+ * a debug build of Chrome – that is outside the scope of this app's WebView capture.
+ *
+ * Standard TLS validation is enforced; there is no SSL bypass.
  */
 class BrowserActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var urlBar: EditText
     private lateinit var progressBar: ProgressBar
-    private lateinit var certManager: CertificateManager
+    private lateinit var trafficRepository: TrafficRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_browser)
 
-        certManager = CertificateManager(this)
-        certManager.initialize()
+        trafficRepository = (application as FortunateHtmlApp).trafficRepository
 
-        webView = findViewById(R.id.webView)
-        urlBar = findViewById(R.id.urlBar)
+        webView     = findViewById(R.id.webView)
+        urlBar      = findViewById(R.id.urlBar)
         progressBar = findViewById(R.id.progressBar)
 
         setupToolbar()
@@ -67,21 +69,20 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         webView.webViewClient = object : WebViewClient() {
-            /**
-             * Accept SSL errors that originate from the proxy's CA-signed certificate.
-             * This resolves net::ERR_CERT_AUTHORITY_INVALID for in-app browser traffic
-             * flowing through the MITM proxy. All other SSL errors are rejected.
-             */
-            override fun onReceivedSslError(
-                view: WebView,
-                handler: SslErrorHandler,
-                error: SslError
-            ) {
-                if (isTrustedByProxyCa(error)) {
-                    handler.proceed()
-                } else {
-                    handler.cancel()
-                }
+            override fun onPageStarted(view: WebView, url: String,
+                                       favicon: android.graphics.Bitmap?) {
+                // Record page navigation as a WebView-sourced traffic entry (URL only)
+                val uri = runCatching { java.net.URI(url) }.getOrNull() ?: return
+                trafficRepository.addEntry(
+                    TrafficEntry(
+                        method  = "GET",
+                        url     = url,
+                        host    = uri.host ?: "",
+                        path    = uri.path ?: "/",
+                        scheme  = uri.scheme ?: "https",
+                        isHttps = uri.scheme == "https"
+                    )
+                )
             }
 
             override fun onPageFinished(view: WebView, url: String) {
@@ -101,7 +102,7 @@ class BrowserActivity : AppCompatActivity() {
         urlBar.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_GO ||
                 (event?.keyCode == KeyEvent.KEYCODE_ENTER &&
-                    event.action == KeyEvent.ACTION_DOWN)
+                        event.action == KeyEvent.ACTION_DOWN)
             ) {
                 navigateTo(urlBar.text.toString())
                 true
@@ -128,24 +129,9 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun navigateTo(url: String) {
-        val trimmed = url.trim()
-        // Only allow http and https schemes to prevent file:// and javascript: injection.
-        val formattedUrl = when {
-            trimmed.startsWith("https://") -> trimmed
-            trimmed.startsWith("http://") -> trimmed
-            trimmed.startsWith("file://") || trimmed.startsWith("javascript:") -> return
-            else -> "https://$trimmed"
-        }
+        // UrlUtils.sanitise() blocks dangerous schemes (file://, javascript:, data:, blob:, content:)
+        val formattedUrl = UrlUtils.sanitise(url) ?: return
         webView.loadUrl(formattedUrl)
-    }
-
-    /**
-     * Returns true when the SSL error is solely [SslError.SSL_UNTRUSTED] and the
-     * certificate was issued by the proxy CA. This is the expected error for every
-     * HTTPS host whose certificate was dynamically generated and signed by the proxy.
-     */
-    fun isTrustedByProxyCa(error: SslError): Boolean {
-        return isTrustedByProxyCa(error.primaryError, error.certificate.issuedBy?.cName)
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -154,19 +140,6 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val DEFAULT_URL = "https://www.google.com"
-
-        /** Common name used in the subject of the proxy's self-signed CA certificate. */
-        const val PROXY_CA_CN = "Fortunate HTML CA"
-
-        /**
-         * Core trust-check logic, parameterised so it can be exercised by unit tests
-         * without depending on Android's [android.net.http.SslError] stubs.
-         *
-         * @param primaryError the value of [SslError.primaryError]
-         * @param issuerCn     the CN from [SslError.certificate]'s [SslCertificate.issuedBy]
-         */        internal fun isTrustedByProxyCa(primaryError: Int, issuerCn: String?): Boolean {
-            return primaryError == SslError.SSL_UNTRUSTED && issuerCn == PROXY_CA_CN
-        }
+        private const val DEFAULT_URL = "about:blank"
     }
 }

@@ -15,7 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/disclaimer_title"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/disclaimer_warning"
             android:layout_marginTop="24dp"
@@ -27,6 +27,7 @@
             android:layout_marginBottom="16dp"
             app:cardElevation="2dp"
             app:cardCornerRadius="8dp"
+            app:cardBackgroundColor="@color/surface"
             xmlns:app="http://schemas.android.com/apk/res-auto">
 
             <TextView
@@ -35,21 +36,31 @@
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:textSize="14sp"
-                android:lineSpacingMultiplier="1.3"
+                android:lineSpacingMultiplier="1.4"
                 android:textColor="@color/on_surface" />
 
         </com.google.android.material.card.MaterialCardView>
 
         <CheckBox
-            android:id="@+id/acceptCheckbox"
+            android:id="@+id/checkboxAuthorized"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/accept_checkbox_text"
+            android:text="@string/checkbox_authorized"
             android:textSize="14sp"
-            android:textStyle="bold"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:minHeight="48dp"
+            android:textColor="@color/on_surface" />
+
+        <CheckBox
+            android:id="@+id/checkboxResponsibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/checkbox_responsibility"
+            android:textSize="14sp"
             android:layout_marginBottom="16dp"
-            android:minHeight="48dp" />
+            android:minHeight="48dp"
+            android:textColor="@color/on_surface" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -59,20 +70,20 @@
             android:layout_marginBottom="24dp">
 
             <Button
-                android:id="@+id/declineButton"
+                android:id="@+id/btnExit"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/decline_button"
+                android:text="@string/btn_exit"
                 android:layout_marginEnd="8dp"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <Button
-                android:id="@+id/acceptButton"
+                android:id="@+id/btnAgree"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/accept_button"
+                android:text="@string/btn_agree"
                 android:layout_marginStart="8dp"
                 android:enabled="false" />
 

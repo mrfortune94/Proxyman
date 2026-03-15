@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Shown when no entry is selected -->
+        <TextView
+            android:id="@+id/requestPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap an entry in the Live tab to inspect its request."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:padding="24dp" />
+
+        <!-- Shown when an entry is selected -->
+        <LinearLayout
+            android:id="@+id/requestDetailGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Method" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/reqMethod"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="14sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="URL" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/reqUrl"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="13sp"
+                android:textIsSelectable="true" android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Query Parameters" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/reqQuery"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="13sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Request Headers" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/reqHeaders"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="12sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Request Body" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/reqBody"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="12sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <Button android:id="@+id/btnCopyRequest"
+                android:layout_width="wrap_content" android:layout_height="36dp"
+                android:text="Copy Request"
+                android:textSize="12sp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_marginBottom="8dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

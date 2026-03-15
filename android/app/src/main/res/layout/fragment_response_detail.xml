@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/responsePlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap an entry in the Live tab to inspect its response."
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:padding="24dp" />
+
+        <LinearLayout
+            android:id="@+id/responseDetailGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="10dp">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Status" android:textColor="@color/text_secondary"
+                        android:textSize="11sp" android:textAllCaps="true"/>
+                    <TextView android:id="@+id/respStatus"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="@color/on_surface" android:textSize="20sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Time" android:textColor="@color/text_secondary"
+                        android:textSize="11sp" android:textAllCaps="true"/>
+                    <TextView android:id="@+id/respTiming"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="@color/on_surface" android:textSize="14sp"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Size" android:textColor="@color/text_secondary"
+                        android:textSize="11sp" android:textAllCaps="true"/>
+                    <TextView android:id="@+id/respSize"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textColor="@color/on_surface" android:textSize="14sp"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Content-Type" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/respContentType"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="13sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Response Headers" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/respHeaders"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="12sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Response Body" android:textColor="@color/text_secondary"
+                android:textSize="11sp" android:textAllCaps="true" android:layout_marginBottom="2dp"/>
+            <TextView android:id="@+id/respBody"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/on_surface" android:textSize="12sp"
+                android:fontFamily="monospace" android:textIsSelectable="true"
+                android:layout_marginBottom="10dp"/>
+
+            <Button android:id="@+id/btnCopyResponse"
+                android:layout_width="wrap_content" android:layout_height="36dp"
+                android:text="Copy Response"
+                android:textSize="12sp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_marginBottom="8dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

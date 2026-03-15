@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
-        android:id="@+id/action_open_browser"
-        android:title="@string/action_open_browser"
+        android:id="@+id/action_import_har"
+        android:title="@string/action_import_har"
         app:showAsAction="never" />
-
     <item
         android:id="@+id/action_clear"
-        android:title="Clear Traffic"
+        android:title="@string/action_clear"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_export_cert"
-        android:title="Export CA Certificate"
-        app:showAsAction="never" />
-
     <item
         android:id="@+id/action_about"
-        android:title="About"
+        android:title="@string/action_about"
         app:showAsAction="never" />
-
 </menu>
