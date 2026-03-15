@@ -9,6 +9,9 @@ interface ProjectDao {
     @Query("SELECT * FROM projects ORDER BY isPinned DESC, updatedAt DESC")
     fun getAllLive(): LiveData<List<Project>>
 
+    @Query("SELECT * FROM projects ORDER BY isPinned DESC, updatedAt DESC")
+    suspend fun getAll(): List<Project>
+
     @Query("SELECT * FROM projects WHERE id = :id")
     suspend fun getById(id: String): Project?
 

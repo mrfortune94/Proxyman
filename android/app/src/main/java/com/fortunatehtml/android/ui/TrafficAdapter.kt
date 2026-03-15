@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,9 +12,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.fortunatehtml.android.R
 import com.fortunatehtml.android.model.TrafficEntry
 
+/**
+ * Adapter for displaying traffic entries with expandable action buttons.
+ * Supports highlighting selected items, copy, replay, and save actions.
+ */
 class TrafficAdapter(
-    private val onItemClick: (TrafficEntry) -> Unit
+    private val onItemClick: (TrafficEntry) -> Unit,
+    private val onCopyClick: ((TrafficEntry) -> Unit)? = null,
+    private val onReplayClick: ((TrafficEntry) -> Unit)? = null,
+    private val onSaveClick: ((TrafficEntry) -> Unit)? = null
 ) : ListAdapter<TrafficEntry, TrafficAdapter.ViewHolder>(DiffCallback()) {
+
+    // Track the currently expanded/selected item
+    private var expandedPosition: Int = RecyclerView.NO_POSITION
+    private var selectedEntryId: String? = null
+
+    fun setSelectedEntry(entryId: String?) {
+        val oldSelectedId = selectedEntryId
+        selectedEntryId = entryId
+        
+        // Find and refresh the old and new selected items
+        currentList.forEachIndexed { index, entry ->
+            if (entry.id == oldSelectedId || entry.id == entryId) {
+                notifyItemChanged(index)
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -22,17 +46,22 @@ class TrafficAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position)
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val itemContainer: LinearLayout = itemView.findViewById(R.id.itemContainer)
         private val methodText: TextView = itemView.findViewById(R.id.methodText)
         private val urlText: TextView = itemView.findViewById(R.id.urlText)
         private val statusText: TextView = itemView.findViewById(R.id.statusText)
         private val durationText: TextView = itemView.findViewById(R.id.durationText)
         private val schemeText: TextView = itemView.findViewById(R.id.schemeText)
+        private val actionButtonsRow: LinearLayout = itemView.findViewById(R.id.actionButtonsRow)
+        private val btnCopy: TextView = itemView.findViewById(R.id.btnCopy)
+        private val btnReplay: TextView = itemView.findViewById(R.id.btnReplay)
+        private val btnSave: TextView = itemView.findViewById(R.id.btnSave)
 
-        fun bind(entry: TrafficEntry) {
+        fun bind(entry: TrafficEntry, position: Int) {
             methodText.text = entry.method
             urlText.text = entry.host + entry.path
             statusText.text = entry.statusText
@@ -61,7 +90,65 @@ class TrafficAdapter(
             }
             methodText.setTextColor(methodColor)
 
-            itemView.setOnClickListener { onItemClick(entry) }
+            // Handle selection/highlighting
+            val isSelected = entry.id == selectedEntryId
+            val isExpanded = position == expandedPosition
+            
+            // Apply highlight background for selected items
+            if (isSelected) {
+                itemContainer.setBackgroundColor(Color.parseColor("#1A2196F3")) // Light blue highlight
+            } else {
+                itemContainer.setBackgroundResource(android.R.attr.selectableItemBackground)
+                // Re-apply the ripple effect
+                val attrs = intArrayOf(android.R.attr.selectableItemBackground)
+                val typedArray = itemView.context.obtainStyledAttributes(attrs)
+                val backgroundResource = typedArray.getResourceId(0, 0)
+                typedArray.recycle()
+                itemContainer.setBackgroundResource(backgroundResource)
+            }
+
+            // Show/hide action buttons
+            actionButtonsRow.visibility = if (isExpanded || isSelected) View.VISIBLE else View.GONE
+
+            // Main click - select and show details
+            itemView.setOnClickListener {
+                val previousExpanded = expandedPosition
+                expandedPosition = if (expandedPosition == position) RecyclerView.NO_POSITION else position
+                
+                // Notify changes for animation
+                notifyItemChanged(previousExpanded)
+                notifyItemChanged(position)
+                
+                onItemClick(entry)
+            }
+
+            // Long press to toggle expansion without navigating
+            itemView.setOnLongClickListener {
+                val previousExpanded = expandedPosition
+                expandedPosition = if (expandedPosition == position) RecyclerView.NO_POSITION else position
+                
+                notifyItemChanged(previousExpanded)
+                notifyItemChanged(position)
+                true
+            }
+
+            // Action button clicks
+            btnCopy.setOnClickListener {
+                onCopyClick?.invoke(entry)
+            }
+
+            btnReplay.setOnClickListener {
+                onReplayClick?.invoke(entry)
+            }
+
+            btnSave.setOnClickListener {
+                onSaveClick?.invoke(entry)
+            }
+
+            // Hide buttons that don't have handlers
+            btnCopy.visibility = if (onCopyClick != null) View.VISIBLE else View.GONE
+            btnReplay.visibility = if (onReplayClick != null) View.VISIBLE else View.GONE
+            btnSave.visibility = if (onSaveClick != null) View.VISIBLE else View.GONE
         }
     }
 

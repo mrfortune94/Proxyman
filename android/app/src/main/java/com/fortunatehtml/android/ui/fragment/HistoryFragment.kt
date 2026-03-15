@@ -66,11 +66,13 @@ class HistoryFragment : Fragment() {
         val btnExportHar = view.findViewById<Button>(R.id.btnExportHar)
         val btnClear     = view.findViewById<Button>(R.id.btnClearHistory)
 
-        adapter = TrafficAdapter { entry ->
-            val intent = Intent(requireContext(), TrafficDetailActivity::class.java)
-            intent.putExtra(TrafficDetailActivity.EXTRA_ENTRY_ID, entry.id)
-            startActivity(intent)
-        }
+        adapter = TrafficAdapter(
+            onItemClick = { entry ->
+                val intent = Intent(requireContext(), TrafficDetailActivity::class.java)
+                intent.putExtra(TrafficDetailActivity.EXTRA_ENTRY_ID, entry.id)
+                startActivity(intent)
+            }
+        )
 
         recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
